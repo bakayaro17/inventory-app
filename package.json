@@ -1,6 +1,6 @@
 {
   "name": "inventory-app",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Personal inventory manager — shipments, inventory, listings, overview.",
   "author": "elvis",
   "main": "out/main/index.js",

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { Card, Button, Input, EmptyState, Pill } from '../components/ui'
+import { Card, Button, Input, Select, EmptyState, Pill } from '../components/ui'
 import PageHeader from '../components/PageHeader'
 import { addListing, deleteListing, computeInventory } from '../lib/db'
 import type { DataState } from '../lib/useData'
@@ -55,18 +55,14 @@ export default function Listing({ data }: { data: DataState }) {
       <Card className="p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-[1fr_120px_140px_150px_auto] gap-3 items-end">
           <Field label="Item">
-            <select
-              value={item}
-              onChange={(e) => setItem(e.target.value)}
-              className="w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-            >
+            <Select value={item} onChange={(e) => setItem(e.target.value)}>
               <option value="">Select item…</option>
               {available.map((r) => (
                 <option key={r.item_name} value={r.item_name}>
                   {r.item_name} ({r.available} available)
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label="Quantity">
             <Input
@@ -79,17 +75,13 @@ export default function Listing({ data }: { data: DataState }) {
             />
           </Field>
           <Field label="Platform">
-            <select
-              value={platform}
-              onChange={(e) => setPlatform(e.target.value)}
-              className="w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30"
-            >
+            <Select value={platform} onChange={(e) => setPlatform(e.target.value)}>
               {PLATFORMS.map((p) => (
                 <option key={p} value={p}>
                   {p}
                 </option>
               ))}
-            </select>
+            </Select>
           </Field>
           <Field label="Date">
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />

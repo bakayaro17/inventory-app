@@ -34,6 +34,19 @@ export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   )
 }
 
+export function Select({ className = '', children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <select
+      {...props}
+      // Translucent when closed; force a solid dark background on the native
+      // option popup so white text stays readable (otherwise it's white-on-white).
+      className={`w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/30 [&>option]:bg-ink [&>option]:text-white ${className}`}
+    >
+      {children}
+    </select>
+  )
+}
+
 export function Pill({ children, tone = 'default' }: { children: React.ReactNode; tone?: 'default' | 'good' | 'warn' }) {
   const t = {
     default: 'bg-white/10 text-white/80',

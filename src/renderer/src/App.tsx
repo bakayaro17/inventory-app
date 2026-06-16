@@ -46,6 +46,24 @@ function Workspace({
   onReset: () => void
 }) {
   const data = useData()
+  const [refreshing, setRefreshing] = useState(false)
+
+  const refresh = async () => {
+    setRefreshing(true)
+    try {
+      await data.refresh()
+    } finally {
+      setRefreshing(false)
+    }
+  }
+
+  // Pull the latest from Supabase whenever the window regains focus, so edits
+  // made on another computer show up without a manual refresh or restart.
+  useEffect(() => {
+    const onFocus = () => data.refresh()
+    window.addEventListener('focus', onFocus)
+    return () => window.removeEventListener('focus', onFocus)
+  }, [data])
 
   return (
     <div className="app-gradient min-h-screen flex text-white">
@@ -57,6 +75,28 @@ function Workspace({
           </div>
         )}
         <div className="max-w-6xl mx-auto px-8 py-8">
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={refresh}
+              disabled={refreshing || data.loading}
+              className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5 text-sm text-white/80 transition-colors focus:outline-none focus:ring-2 focus:ring-white/30"
+              title="Reload data from the cloud"
+            >
+              <svg
+                className={`h-4 w-4 ${refreshing || data.loading ? 'animate-spin' : ''}`}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+                <path d="M21 3v6h-6" />
+              </svg>
+              {refreshing || data.loading ? 'Refreshing…' : 'Refresh'}
+            </button>
+          </div>
           {data.error && (
             <div className="mb-6 rounded-xl bg-rose-500/20 border border-rose-400/30 px-4 py-3 text-rose-100 text-sm">
               {data.error}
