@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Animated gradient background */
+.app-gradient {
+  background: linear-gradient(135deg, #0f1226 0%, #1a1f4a 35%, #4a2b6b 70%, #6b2b5a 100%);
+  background-size: 200% 200%;
+  animation: drift 24s ease infinite;
+}
+
+@keyframes drift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Frosted-glass card */
+.glass {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px);
+}
+
+/* Subtle scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+input,
+select {
+  color-scheme: dark;
+}
