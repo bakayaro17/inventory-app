@@ -9,8 +9,8 @@ const PLATFORMS = ['eBay', 'Mercari', 'Poshmark', 'Other']
 
 export default function Listing({ data }: { data: DataState }) {
   const inventory = useMemo(
-    () => computeInventory(data.shipments, data.listings),
-    [data.shipments, data.listings]
+    () => computeInventory(data.shipments, data.listings, data.outbound),
+    [data.shipments, data.listings, data.outbound]
   )
   const available = inventory.filter((r) => r.available > 0)
 

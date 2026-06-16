@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react'
 import Setup from './components/Setup'
 import Sidebar from './components/Sidebar'
 import Shipments from './pages/Shipments'
+import ShipmentsOut from './pages/ShipmentsOut'
+import Items from './pages/Items'
 import Inventory from './pages/Inventory'
 import Listing from './pages/Listing'
 import Overview from './pages/Overview'
@@ -103,6 +105,8 @@ function Workspace({
             </div>
           )}
           {page === 'shipments' && <Shipments data={data} />}
+          {page === 'outbound' && <ShipmentsOut data={data} />}
+          {page === 'items' && <Items data={data} />}
           {page === 'inventory' && <Inventory data={data} />}
           {page === 'listing' && <Listing data={data} />}
           {page === 'overview' && <Overview data={data} />}

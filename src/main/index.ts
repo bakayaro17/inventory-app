@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { autoUpdater } from 'electron-updater'
+import { getPrintStatus, savePrintSettings, emailShipments } from './email'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -71,3 +72,8 @@ ipcMain.handle('updates:check', async () => {
 autoUpdater.on('update-downloaded', () => {
   mainWindow?.webContents.send('updates:downloaded')
 })
+
+// ---- Printer email (Epson Email Print) ----
+ipcMain.handle('print:getSettings', () => getPrintStatus())
+ipcMain.handle('print:saveSettings', (_e, input) => savePrintSettings(input))
+ipcMain.handle('print:email', (_e, payload) => emailShipments(payload))

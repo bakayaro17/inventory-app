@@ -6,7 +6,7 @@ import type { DataState } from '../lib/useData'
 
 export default function Inventory({ data }: { data: DataState }) {
   const [showHidden, setShowHidden] = useState(false)
-  const rows = computeInventory(data.shipments, data.listings)
+  const rows = computeInventory(data.shipments, data.listings, data.outbound)
   const inStock = rows.filter((r) => r.available > 0)
   const depleted = rows.filter((r) => r.available <= 0)
   const visible = showHidden ? rows : inStock
@@ -41,6 +41,7 @@ export default function Inventory({ data }: { data: DataState }) {
                 <th className="px-4 py-3 font-medium">Item name</th>
                 <th className="px-4 py-3 font-medium text-right">Received</th>
                 <th className="px-4 py-3 font-medium text-right">Listed</th>
+                <th className="px-4 py-3 font-medium text-right">Shipped</th>
                 <th className="px-4 py-3 font-medium text-right">Available</th>
               </tr>
             </thead>
@@ -53,6 +54,7 @@ export default function Inventory({ data }: { data: DataState }) {
                   <td className="px-4 py-3 font-medium">{r.item_name}</td>
                   <td className="px-4 py-3 text-right tabular-nums text-white/60">{r.received}</td>
                   <td className="px-4 py-3 text-right tabular-nums text-white/60">{r.listed}</td>
+                  <td className="px-4 py-3 text-right tabular-nums text-white/60">{r.shipped}</td>
                   <td className="px-4 py-3 text-right">
                     {r.available > 0 ? (
                       <Pill tone="good">{r.available}</Pill>

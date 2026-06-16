@@ -1,12 +1,17 @@
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Card, Button, Input, EmptyState } from '../components/ui'
+import { Autocomplete } from '../components/Autocomplete'
 import PageHeader from '../components/PageHeader'
-import { addShipment, deleteShipment } from '../lib/db'
+import { addShipment, deleteShipment, knownItems } from '../lib/db'
 import type { DataState } from '../lib/useData'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
 export default function Shipments({ data }: { data: DataState }) {
+  const itemOptions = useMemo(
+    () => knownItems(data.shipments, data.items),
+    [data.shipments, data.items]
+  )
   const [date, setDate] = useState(today())
   const [retailer, setRetailer] = useState('')
   const [itemName, setItemName] = useState('')
@@ -54,11 +59,12 @@ export default function Shipments({ data }: { data: DataState }) {
             <Input value={retailer} onChange={(e) => setRetailer(e.target.value)} placeholder="e.g. Amazon" />
           </Field>
           <Field label="Item name">
-            <Input
+            <Autocomplete
               value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
-              placeholder="e.g. Fuzz Balls"
-              onKeyDown={(e) => e.key === 'Enter' && add()}
+              onChange={setItemName}
+              options={itemOptions}
+              placeholder="Pick or type an item…"
+              onEnterEmpty={add}
             />
           </Field>
           <Field label="Quantity">

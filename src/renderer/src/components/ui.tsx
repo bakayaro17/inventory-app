@@ -2,12 +2,14 @@ import React from 'react'
 
 export function Card({
   className = '',
-  children
-}: {
-  className?: string
-  children: React.ReactNode
-}) {
-  return <div className={`glass rounded-2xl shadow-xl ${className}`}>{children}</div>
+  children,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div className={`glass rounded-2xl shadow-xl ${className}`} {...props}>
+      {children}
+    </div>
+  )
 }
 
 type BtnProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {

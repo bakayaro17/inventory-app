@@ -3,6 +3,8 @@ import type { Page } from '../lib/types'
 
 const NAV: { id: Page; label: string; icon: string }[] = [
   { id: 'shipments', label: 'Shipment Received', icon: '📦' },
+  { id: 'outbound', label: 'Shipments', icon: '🚚' },
+  { id: 'items', label: 'Items', icon: '🧸' },
   { id: 'inventory', label: 'Inventory', icon: '🗃️' },
   { id: 'listing', label: 'Listing', icon: '🏷️' },
   { id: 'overview', label: 'Overview', icon: '📊' }
