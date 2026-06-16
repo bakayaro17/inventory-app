@@ -154,6 +154,7 @@ export default function ShipmentsOut({ data }: { data: DataState }) {
                       onChange={(v) => setLine(i, { item_name: v })}
                       options={itemOptions}
                       placeholder="Pick or type an item…"
+                      allowCreate
                     />
                   </div>
                   <div className="w-20 shrink-0">

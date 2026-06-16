@@ -51,7 +51,12 @@ app.whenReady().then(() => {
   }
 })
 
+// Set while installing an update so window-all-closed doesn't quit the app
+// before electron-updater has spawned the installer.
+let quittingForUpdate = false
+
 app.on('window-all-closed', () => {
+  if (quittingForUpdate) return
   if (process.platform !== 'darwin') app.quit()
 })
 
@@ -88,8 +93,12 @@ autoUpdater.on('update-downloaded', (info) =>
 autoUpdater.on('error', (err) => sendUpdateStatus({ state: 'error', message: String(err) }))
 
 // Quit and install the downloaded update (triggered by the Restart button).
+// quitAndInstall(isSilent=true, isForceRunAfter=true): install silently and
+// relaunch — without this the assisted installer makes the app appear to just
+// close without updating.
 ipcMain.handle('updates:quitAndInstall', () => {
-  setImmediate(() => autoUpdater.quitAndInstall())
+  quittingForUpdate = true
+  setImmediate(() => autoUpdater.quitAndInstall(true, true))
 })
 
 // ---- Printer email (Epson Email Print) ----

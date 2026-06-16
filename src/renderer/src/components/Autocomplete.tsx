@@ -1,12 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 const inputCls =
-  'w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/30'
+  'w-full rounded-lg bg-white/10 border border-white/10 pl-3 pr-9 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/30'
+
+type Entry = { kind: 'option'; label: string } | { kind: 'create'; label: string }
 
 /**
- * A free-text input with a filtered suggestion dropdown. Users can pick a
- * suggestion or type any value. Pass `options` for small in-memory lists, or
- * `getMatches` for large datasets (e.g. US cities) that filter themselves.
+ * A combobox: a text box that opens a dropdown of suggestions. Click to see the
+ * full list (for the in-memory `options` variant), type to filter. With
+ * `allowCreate`, when the typed text matches nothing it offers a "Use \"…\"" row
+ * so a brand-new value can be chosen. For large datasets pass `getMatches`
+ * (which filters itself) instead of `options`.
  */
 export function Autocomplete({
   value,
@@ -15,7 +19,8 @@ export function Autocomplete({
   getMatches,
   placeholder,
   minChars = 1,
-  maxResults = 30,
+  maxResults = 50,
+  allowCreate = false,
   onEnterEmpty,
   className = ''
 }: {
@@ -26,26 +31,43 @@ export function Autocomplete({
   placeholder?: string
   minChars?: number
   maxResults?: number
-  onEnterEmpty?: () => void // called when Enter is pressed and no list is open
+  allowCreate?: boolean
+  onEnterEmpty?: () => void
   className?: string
 }) {
   const [open, setOpen] = useState(false)
   const [hi, setHi] = useState(0)
   const wrapRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  const trimmed = value.trim()
+  const lower = trimmed.toLowerCase()
 
   const matches = useMemo(() => {
-    const q = value.trim().toLowerCase()
-    if (q.length < minChars) return []
-    if (getMatches) return getMatches(q).slice(0, maxResults)
-    return (options ?? [])
-      .filter((o) => o.toLowerCase().includes(q))
+    if (getMatches) {
+      if (lower.length < minChars) return []
+      return getMatches(lower).slice(0, maxResults)
+    }
+    const opts = options ?? []
+    if (lower.length === 0) return opts.slice(0, maxResults) // empty → show all
+    return opts
+      .filter((o) => o.toLowerCase().includes(lower))
       .sort((a, b) => {
-        const ap = a.toLowerCase().startsWith(q) ? 0 : 1
-        const bp = b.toLowerCase().startsWith(q) ? 0 : 1
+        const ap = a.toLowerCase().startsWith(lower) ? 0 : 1
+        const bp = b.toLowerCase().startsWith(lower) ? 0 : 1
         return ap - bp || a.localeCompare(b)
       })
       .slice(0, maxResults)
-  }, [value, options, getMatches, minChars, maxResults])
+  }, [lower, options, getMatches, minChars, maxResults])
+
+  const exactMatch = matches.some((m) => m.toLowerCase() === lower)
+  const showCreate = allowCreate && trimmed.length > 0 && !exactMatch
+
+  const entries: Entry[] = [
+    ...matches.map((m) => ({ kind: 'option' as const, label: m })),
+    ...(showCreate ? [{ kind: 'create' as const, label: trimmed }] : [])
+  ]
+  const showList = open && entries.length > 0
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
@@ -55,16 +77,15 @@ export function Autocomplete({
     return () => document.removeEventListener('mousedown', onDoc)
   }, [])
 
-  const showList = open && matches.length > 0
-
-  function choose(v: string) {
-    onChange(v)
+  function choose(entry: Entry) {
+    onChange(entry.label)
     setOpen(false)
   }
 
   return (
     <div ref={wrapRef} className="relative">
       <input
+        ref={inputRef}
         value={value}
         onChange={(e) => {
           onChange(e.target.value)
@@ -76,13 +97,13 @@ export function Autocomplete({
           if (showList) {
             if (e.key === 'ArrowDown') {
               e.preventDefault()
-              setHi((h) => Math.min(h + 1, matches.length - 1))
+              setHi((h) => Math.min(h + 1, entries.length - 1))
             } else if (e.key === 'ArrowUp') {
               e.preventDefault()
               setHi((h) => Math.max(h - 1, 0))
             } else if (e.key === 'Enter') {
               e.preventDefault()
-              choose(matches[hi])
+              choose(entries[hi])
             } else if (e.key === 'Escape') {
               setOpen(false)
             }
@@ -94,21 +115,42 @@ export function Autocomplete({
         className={`${inputCls} ${className}`}
         autoComplete="off"
       />
+      <button
+        type="button"
+        tabIndex={-1}
+        onClick={() => {
+          setOpen((o) => !o)
+          inputRef.current?.focus()
+        }}
+        className="absolute inset-y-0 right-0 flex items-center px-2.5 text-white/40 hover:text-white/70"
+        aria-label="Toggle list"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M6 8l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
       {showList && (
         <ul className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-white/10 bg-ink shadow-xl">
-          {matches.map((m, idx) => (
+          {entries.map((entry, idx) => (
             <li
-              key={m}
+              key={entry.kind + entry.label}
               onMouseDown={(e) => {
                 e.preventDefault()
-                choose(m)
+                choose(entry)
               }}
               onMouseEnter={() => setHi(idx)}
               className={`cursor-pointer px-3 py-2 text-sm ${
                 idx === hi ? 'bg-white/15 text-white' : 'text-white/80'
               }`}
             >
-              {m}
+              {entry.kind === 'create' ? (
+                <span>
+                  Use “<span className="font-medium">{entry.label}</span>”
+                  <span className="text-white/40"> — new item</span>
+                </span>
+              ) : (
+                entry.label
+              )}
             </li>
           ))}
         </ul>

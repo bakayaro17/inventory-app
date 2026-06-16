@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { Card, Button, Input, EmptyState } from '../components/ui'
+import { Card, Button, Input, Select, EmptyState } from '../components/ui'
 import { Autocomplete } from '../components/Autocomplete'
 import PageHeader from '../components/PageHeader'
 import { addShipment, deleteShipment, knownItems } from '../lib/db'
@@ -13,7 +13,7 @@ export default function Shipments({ data }: { data: DataState }) {
     [data.shipments, data.items]
   )
   const [date, setDate] = useState(today())
-  const [retailer, setRetailer] = useState('')
+  const [retailer, setRetailer] = useState('Amazon')
   const [itemName, setItemName] = useState('')
   const [quantity, setQuantity] = useState('')
   const [saving, setSaving] = useState(false)
@@ -29,7 +29,7 @@ export default function Shipments({ data }: { data: DataState }) {
         item_name: itemName.trim(),
         quantity: qty
       })
-      setRetailer('')
+      setRetailer('Amazon')
       setItemName('')
       setQuantity('')
       await data.refresh()
@@ -56,7 +56,10 @@ export default function Shipments({ data }: { data: DataState }) {
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </Field>
           <Field label="Retailer">
-            <Input value={retailer} onChange={(e) => setRetailer(e.target.value)} placeholder="e.g. Amazon" />
+            <Select value={retailer} onChange={(e) => setRetailer(e.target.value)}>
+              <option value="Amazon">Amazon</option>
+              <option value="Target">Target</option>
+            </Select>
           </Field>
           <Field label="Item name">
             <Autocomplete
@@ -64,6 +67,7 @@ export default function Shipments({ data }: { data: DataState }) {
               onChange={setItemName}
               options={itemOptions}
               placeholder="Pick or type an item…"
+              allowCreate
               onEnterEmpty={add}
             />
           </Field>
