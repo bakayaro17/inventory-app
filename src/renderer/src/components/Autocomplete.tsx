@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 const inputCls =
   'w-full rounded-lg bg-white/10 border border-white/10 pl-3 pr-9 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-white/30'
@@ -9,8 +10,11 @@ type Entry = { kind: 'option'; label: string } | { kind: 'create'; label: string
  * A combobox: a text box that opens a dropdown of suggestions. Click to see the
  * full list (for the in-memory `options` variant), type to filter. With
  * `allowCreate`, when the typed text matches nothing it offers a "Use \"…\"" row
- * so a brand-new value can be chosen. For large datasets pass `getMatches`
- * (which filters itself) instead of `options`.
+ * so a brand-new value can be chosen. For large datasets pass `getMatches`.
+ *
+ * The dropdown renders in a portal at document.body (positioned under the input)
+ * so it can't be clipped or covered by sibling cards — `.glass` cards each
+ * create a stacking context via backdrop-filter, which would otherwise trap it.
  */
 export function Autocomplete({
   value,
@@ -37,8 +41,10 @@ export function Autocomplete({
 }) {
   const [open, setOpen] = useState(false)
   const [hi, setHi] = useState(0)
+  const [rect, setRect] = useState<{ left: number; top: number; width: number } | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const listRef = useRef<HTMLUListElement>(null)
 
   const trimmed = value.trim()
   const lower = trimmed.toLowerCase()
@@ -69,9 +75,29 @@ export function Autocomplete({
   ]
   const showList = open && entries.length > 0
 
+  // Keep the portal dropdown aligned under the input while open.
+  useLayoutEffect(() => {
+    if (!open) return
+    const update = () => {
+      const el = inputRef.current
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      setRect({ left: r.left, top: r.bottom + 4, width: r.width })
+    }
+    update()
+    window.addEventListener('resize', update)
+    window.addEventListener('scroll', update, true) // capture: any scrolling ancestor
+    return () => {
+      window.removeEventListener('resize', update)
+      window.removeEventListener('scroll', update, true)
+    }
+  }, [open, entries.length])
+
   useEffect(() => {
     function onDoc(e: MouseEvent) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+      const t = e.target as Node
+      if (wrapRef.current?.contains(t) || listRef.current?.contains(t)) return
+      setOpen(false)
     }
     document.addEventListener('mousedown', onDoc)
     return () => document.removeEventListener('mousedown', onDoc)
@@ -129,32 +155,39 @@ export function Autocomplete({
           <path d="M6 8l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
-      {showList && (
-        <ul className="absolute z-30 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-white/10 bg-ink shadow-xl">
-          {entries.map((entry, idx) => (
-            <li
-              key={entry.kind + entry.label}
-              onMouseDown={(e) => {
-                e.preventDefault()
-                choose(entry)
-              }}
-              onMouseEnter={() => setHi(idx)}
-              className={`cursor-pointer px-3 py-2 text-sm ${
-                idx === hi ? 'bg-white/15 text-white' : 'text-white/80'
-              }`}
-            >
-              {entry.kind === 'create' ? (
-                <span>
-                  Use “<span className="font-medium">{entry.label}</span>”
-                  <span className="text-white/40"> — new item</span>
-                </span>
-              ) : (
-                entry.label
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
+      {showList &&
+        rect &&
+        createPortal(
+          <ul
+            ref={listRef}
+            style={{ position: 'fixed', left: rect.left, top: rect.top, width: rect.width, zIndex: 1000 }}
+            className="max-h-60 overflow-auto rounded-lg border border-white/10 bg-ink shadow-2xl"
+          >
+            {entries.map((entry, idx) => (
+              <li
+                key={entry.kind + entry.label}
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  choose(entry)
+                }}
+                onMouseEnter={() => setHi(idx)}
+                className={`cursor-pointer px-3 py-2 text-sm ${
+                  idx === hi ? 'bg-white/15 text-white' : 'text-white/80'
+                }`}
+              >
+                {entry.kind === 'create' ? (
+                  <span>
+                    Use “<span className="font-medium">{entry.label}</span>”
+                    <span className="text-white/40"> — new item</span>
+                  </span>
+                ) : (
+                  entry.label
+                )}
+              </li>
+            ))}
+          </ul>,
+          document.body
+        )}
     </div>
   )
 }
