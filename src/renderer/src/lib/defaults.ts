@@ -2,11 +2,15 @@ import type { SupabaseConfig } from './config'
 
 /**
  * Built-in Supabase connection. When set, the app connects automatically and
- * skips the setup screen. Leave anonKey empty to fall back to the setup screen.
+ * skips the setup screen. Leave both fields empty to use the setup screen.
+ *
+ * SECURITY: this repo is public. Do NOT hardcode a real project URL or anon key
+ * here — the anon role has full table access, so committing a key would expose
+ * the database to anyone. Enter credentials at runtime via the setup screen.
  */
 export const DEFAULT_CONFIG: SupabaseConfig | null = {
-  url: 'https://beoyhmzzjoseyninecry.supabase.co',
-  anonKey: '' // <-- anon public key goes here
+  url: '',
+  anonKey: ''
 }
 
 export function getDefaultConfig(): SupabaseConfig | null {
