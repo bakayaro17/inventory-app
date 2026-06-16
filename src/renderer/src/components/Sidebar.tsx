@@ -13,22 +13,19 @@ const NAV: { id: Page; label: string; icon: string }[] = [
 export default function Sidebar({
   page,
   setPage,
-  onReset
+  onReset,
+  onCheckUpdates
 }: {
   page: Page
   setPage: (p: Page) => void
   onReset: () => void
+  onCheckUpdates: () => void
 }) {
   const [version, setVersion] = useState('')
 
   useEffect(() => {
     window.api?.getVersion().then(setVersion).catch(() => {})
   }, [])
-
-  async function checkUpdates() {
-    const res = await window.api?.checkForUpdates()
-    if (res) alert(res.message ?? `Up to date (or update found: ${res.version ?? 'none'}).`)
-  }
 
   return (
     <aside className="w-64 shrink-0 h-screen glass border-r border-white/10 flex flex-col px-4 py-6">
@@ -53,7 +50,7 @@ export default function Sidebar({
       </nav>
 
       <div className="mt-6 space-y-2 px-1">
-        <button onClick={checkUpdates} className="text-xs text-white/50 hover:text-white/80">
+        <button onClick={onCheckUpdates} className="text-xs text-white/50 hover:text-white/80">
           Check for updates
         </button>
         <br />

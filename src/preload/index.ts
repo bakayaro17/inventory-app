@@ -6,13 +6,21 @@ export interface PrintStatus {
   printerEmail: string
 }
 
+export interface UpdateStatus {
+  state: 'checking' | 'available' | 'none' | 'downloading' | 'downloaded' | 'error'
+  percent?: number
+  version?: string
+  message?: string
+}
+
 const api = {
   getVersion: (): Promise<string> => ipcRenderer.invoke('app:getVersion'),
   checkForUpdates: (): Promise<{ status: string; version?: string | null; message?: string }> =>
     ipcRenderer.invoke('updates:check'),
-  onUpdateDownloaded: (cb: () => void): void => {
-    ipcRenderer.on('updates:downloaded', () => cb())
+  onUpdateStatus: (cb: (s: UpdateStatus) => void): void => {
+    ipcRenderer.on('updates:status', (_e, payload: UpdateStatus) => cb(payload))
   },
+  quitAndInstall: (): Promise<void> => ipcRenderer.invoke('updates:quitAndInstall'),
   getPrintSettings: (): Promise<PrintStatus> => ipcRenderer.invoke('print:getSettings'),
   savePrintSettings: (input: {
     gmailUser: string

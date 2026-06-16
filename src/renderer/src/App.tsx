@@ -10,15 +10,11 @@ import Overview from './pages/Overview'
 import { loadConfig, clearConfig } from './lib/config'
 import { useData } from './lib/useData'
 import type { Page } from './lib/types'
+import type { UpdateStatus } from '../../preload'
 
 export default function App() {
   const [configured, setConfigured] = useState<boolean>(() => !!loadConfig())
   const [page, setPage] = useState<Page>('shipments')
-  const [updateReady, setUpdateReady] = useState(false)
-
-  useEffect(() => {
-    window.api?.onUpdateDownloaded(() => setUpdateReady(true))
-  }, [])
 
   if (!configured) {
     return <Setup onConnected={() => setConfigured(true)} />
@@ -27,7 +23,6 @@ export default function App() {
     <Workspace
       page={page}
       setPage={setPage}
-      updateReady={updateReady}
       onReset={() => {
         clearConfig()
         setConfigured(false)
@@ -39,16 +34,34 @@ export default function App() {
 function Workspace({
   page,
   setPage,
-  updateReady,
   onReset
 }: {
   page: Page
   setPage: (p: Page) => void
-  updateReady: boolean
   onReset: () => void
 }) {
   const data = useData()
   const [refreshing, setRefreshing] = useState(false)
+
+  // ---- Auto-update status ----
+  const [update, setUpdate] = useState<UpdateStatus | null>(null)
+  const [manualCheck, setManualCheck] = useState(false)
+
+  useEffect(() => {
+    window.api?.onUpdateStatus((s) => setUpdate(s))
+  }, [])
+
+  async function checkUpdates() {
+    setManualCheck(true)
+    setUpdate({ state: 'checking' })
+    const res = await window.api?.checkForUpdates()
+    if (res?.status === 'dev') {
+      setUpdate({ state: 'none', message: 'Updates run only in the installed app.' })
+    } else if (res?.status === 'error') {
+      setUpdate({ state: 'error', message: res.message })
+    }
+    // In the packaged app, the rest is driven by onUpdateStatus events.
+  }
 
   const refresh = async () => {
     setRefreshing(true)
@@ -69,13 +82,17 @@ function Workspace({
 
   return (
     <div className="app-gradient min-h-screen flex text-white">
-      <Sidebar page={page} setPage={setPage} onReset={onReset} />
+      <Sidebar page={page} setPage={setPage} onReset={onReset} onCheckUpdates={checkUpdates} />
       <main className="flex-1 h-screen overflow-y-auto">
-        {updateReady && (
-          <div className="bg-emerald-400/20 text-emerald-100 text-sm px-6 py-2 text-center">
-            An update has been downloaded — it will install next time you restart.
-          </div>
-        )}
+        <UpdateBanner
+          update={update}
+          manualCheck={manualCheck}
+          onRestart={() => window.api?.quitAndInstall()}
+          onDismiss={() => {
+            setUpdate(null)
+            setManualCheck(false)
+          }}
+        />
         <div className="max-w-6xl mx-auto px-8 py-8">
           <div className="flex justify-end mb-4">
             <button
@@ -112,6 +129,79 @@ function Workspace({
           {page === 'overview' && <Overview data={data} />}
         </div>
       </main>
+    </div>
+  )
+}
+
+function UpdateBanner({
+  update,
+  manualCheck,
+  onRestart,
+  onDismiss
+}: {
+  update: UpdateStatus | null
+  manualCheck: boolean
+  onRestart: () => void
+  onDismiss: () => void
+}) {
+  if (!update) return null
+  const { state } = update
+  // Download progress and "ready" always show; transient states only when the
+  // user clicked "Check for updates" (so background checks stay quiet).
+  const transient = state === 'checking' || state === 'available' || state === 'none' || state === 'error'
+  if (transient && !manualCheck) return null
+
+  const base = 'text-sm px-6 py-2 flex items-center justify-center gap-3'
+
+  if (state === 'downloaded') {
+    return (
+      <div className={`${base} bg-emerald-400/20 text-emerald-100`}>
+        <span>Update {update.version ? `v${update.version} ` : ''}downloaded and ready.</span>
+        <button
+          onClick={onRestart}
+          className="rounded-lg bg-emerald-400 text-emerald-950 font-medium px-3 py-1 hover:bg-emerald-300"
+        >
+          Restart &amp; install
+        </button>
+      </div>
+    )
+  }
+
+  if (state === 'downloading') {
+    const pct = update.percent ?? 0
+    return (
+      <div className="bg-sky-400/15 text-sky-100 px-6 py-2">
+        <div className="flex items-center justify-center gap-3 text-sm">
+          <span>Downloading update…</span>
+          <span className="tabular-nums font-medium">{pct}%</span>
+        </div>
+        <div className="mt-1.5 mx-auto max-w-md h-1.5 rounded-full bg-white/10 overflow-hidden">
+          <div className="h-full bg-sky-300 transition-all duration-200" style={{ width: `${pct}%` }} />
+        </div>
+      </div>
+    )
+  }
+
+  const text =
+    state === 'checking'
+      ? 'Checking for updates…'
+      : state === 'available'
+        ? `Update ${update.version ? `v${update.version} ` : ''}found — downloading…`
+        : state === 'none'
+          ? update.message || "You're on the latest version."
+          : `Update error: ${update.message || 'unknown error'}`
+
+  const tone = state === 'error' ? 'bg-rose-500/20 text-rose-100' : 'bg-white/10 text-white/80'
+  const dismissable = state === 'none' || state === 'error'
+
+  return (
+    <div className={`${base} ${tone}`}>
+      <span>{text}</span>
+      {dismissable && (
+        <button onClick={onDismiss} className="text-white/50 hover:text-white" title="Dismiss">
+          ✕
+        </button>
+      )}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { listShipments, listListings, listItems, listOutbound } from './db'
+import { errMessage } from './errors'
 import type { Shipment, Listing, ItemPreset, OutboundShipment } from './types'
 
 export interface DataState {
@@ -34,7 +35,7 @@ export function useData(): DataState {
       setItems(i)
       setOutbound(o)
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(errMessage(e))
     } finally {
       setLoading(false)
     }

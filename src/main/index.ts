@@ -69,8 +69,27 @@ ipcMain.handle('updates:check', async () => {
   }
 })
 
-autoUpdater.on('update-downloaded', () => {
-  mainWindow?.webContents.send('updates:downloaded')
+// Stream update lifecycle + download progress to the renderer on one channel.
+function sendUpdateStatus(payload: Record<string, unknown>): void {
+  mainWindow?.webContents.send('updates:status', payload)
+}
+
+autoUpdater.on('checking-for-update', () => sendUpdateStatus({ state: 'checking' }))
+autoUpdater.on('update-available', (info) =>
+  sendUpdateStatus({ state: 'available', version: info?.version })
+)
+autoUpdater.on('update-not-available', () => sendUpdateStatus({ state: 'none' }))
+autoUpdater.on('download-progress', (p) =>
+  sendUpdateStatus({ state: 'downloading', percent: Math.round(p?.percent ?? 0) })
+)
+autoUpdater.on('update-downloaded', (info) =>
+  sendUpdateStatus({ state: 'downloaded', version: info?.version })
+)
+autoUpdater.on('error', (err) => sendUpdateStatus({ state: 'error', message: String(err) }))
+
+// Quit and install the downloaded update (triggered by the Restart button).
+ipcMain.handle('updates:quitAndInstall', () => {
+  setImmediate(() => autoUpdater.quitAndInstall())
 })
 
 // ---- Printer email (Epson Email Print) ----
