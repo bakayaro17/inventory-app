@@ -148,7 +148,7 @@ export default function ShipmentsOut({ data }: { data: DataState }) {
             <div className="space-y-2">
               {lines.map((l, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <Autocomplete
                       value={l.item_name}
                       onChange={(v) => setLine(i, { item_name: v })}
@@ -156,17 +156,18 @@ export default function ShipmentsOut({ data }: { data: DataState }) {
                       placeholder="Pick or type an item…"
                     />
                   </div>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={String(l.quantity)}
-                    onChange={(e) => setLine(i, { quantity: parseInt(e.target.value, 10) || 0 })}
-                    className="w-20"
-                  />
+                  <div className="w-20 shrink-0">
+                    <Input
+                      type="number"
+                      min={1}
+                      value={String(l.quantity)}
+                      onChange={(e) => setLine(i, { quantity: parseInt(e.target.value, 10) || 0 })}
+                    />
+                  </div>
                   <button
                     onClick={() => removeLine(i)}
                     disabled={lines.length === 1}
-                    className="text-white/30 hover:text-rose-300 disabled:opacity-30 px-1"
+                    className="shrink-0 text-white/30 hover:text-rose-300 disabled:opacity-30 px-1"
                     title="Remove item"
                   >
                     ✕
