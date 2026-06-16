@@ -1,0 +1,42 @@
+name: Release
+
+# Build and publish installers when a version tag (e.g. v0.2.0) is pushed.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # allow the built-in GITHUB_TOKEN to create/upload releases
+
+jobs:
+  release:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            build: npm run build:win
+          - os: macos-latest
+            build: npm run build:mac
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and publish
+        env:
+          # Built-in token — electron-builder uses this to upload assets to the
+          # release for the tag that triggered this run. No manual secret needed.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ${{ matrix.build }} -- --publish always
