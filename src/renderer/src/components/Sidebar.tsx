@@ -14,11 +14,13 @@ export default function Sidebar({
   page,
   setPage,
   onReset,
+  onSignOut,
   onCheckUpdates
 }: {
   page: Page
   setPage: (p: Page) => void
   onReset: () => void
+  onSignOut: () => void
   onCheckUpdates: () => void
 }) {
   const [version, setVersion] = useState('')
@@ -52,6 +54,10 @@ export default function Sidebar({
       <div className="mt-6 space-y-2 px-1">
         <button onClick={onCheckUpdates} className="text-xs text-white/50 hover:text-white/80">
           Check for updates
+        </button>
+        <br />
+        <button onClick={onSignOut} className="text-xs text-white/50 hover:text-white/80">
+          Sign out
         </button>
         <br />
         <button onClick={onReset} className="text-xs text-white/40 hover:text-white/70">

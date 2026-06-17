@@ -50,26 +50,33 @@ create index if not exists items_name_idx on public.items (lower(name));
 create index if not exists outbound_date_idx on public.outbound_shipments (date);
 
 -- Row Level Security.
--- This app uses the anon key from a single trusted desktop. The simplest setup
--- for personal use is to allow the anon role full access. If you later add
--- Supabase Auth, replace these policies with user-scoped ones.
+-- Access requires a logged-in Supabase Auth user. The anon key (shipped in the
+-- app bundle) can reach ONLY the auth/login endpoint — it cannot read or write
+-- any table until you sign in. Create your single user in the dashboard
+-- (Authentication -> Users -> Add user) and turn OFF public sign-ups.
 alter table public.shipments enable row level security;
 alter table public.listings enable row level security;
 alter table public.items enable row level security;
 alter table public.outbound_shipments enable row level security;
 
+-- Drop the old wide-open anon policies if they exist (migration from <=0.2.6).
 drop policy if exists "anon all shipments" on public.shipments;
-create policy "anon all shipments" on public.shipments
-  for all to anon using (true) with check (true);
-
 drop policy if exists "anon all listings" on public.listings;
-create policy "anon all listings" on public.listings
-  for all to anon using (true) with check (true);
-
 drop policy if exists "anon all items" on public.items;
-create policy "anon all items" on public.items
-  for all to anon using (true) with check (true);
-
 drop policy if exists "anon all outbound" on public.outbound_shipments;
-create policy "anon all outbound" on public.outbound_shipments
-  for all to anon using (true) with check (true);
+
+drop policy if exists "auth all shipments" on public.shipments;
+create policy "auth all shipments" on public.shipments
+  for all to authenticated using (true) with check (true);
+
+drop policy if exists "auth all listings" on public.listings;
+create policy "auth all listings" on public.listings
+  for all to authenticated using (true) with check (true);
+
+drop policy if exists "auth all items" on public.items;
+create policy "auth all items" on public.items
+  for all to authenticated using (true) with check (true);
+
+drop policy if exists "auth all outbound" on public.outbound_shipments;
+create policy "auth all outbound" on public.outbound_shipments
+  for all to authenticated using (true) with check (true);

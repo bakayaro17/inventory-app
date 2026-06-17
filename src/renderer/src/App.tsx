@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Setup from './components/Setup'
+import Login from './components/Login'
 import Sidebar from './components/Sidebar'
 import Shipments from './pages/Shipments'
 import ShipmentsOut from './pages/ShipmentsOut'
@@ -8,16 +9,38 @@ import Inventory from './pages/Inventory'
 import Listing from './pages/Listing'
 import Overview from './pages/Overview'
 import { loadConfig, clearConfig } from './lib/config'
+import { getSession, onAuthChange, signOut } from './lib/supabase'
 import { useData } from './lib/useData'
 import type { Page } from './lib/types'
 import type { UpdateStatus } from '../../preload'
 
 export default function App() {
   const [configured, setConfigured] = useState<boolean>(() => !!loadConfig())
+  const [authed, setAuthed] = useState<boolean | null>(null) // null = still checking
   const [page, setPage] = useState<Page>('shipments')
+
+  // Once configured, check for a saved session and react to login/logout.
+  useEffect(() => {
+    if (!configured) return
+    let active = true
+    getSession().then((s) => {
+      if (active) setAuthed(!!s)
+    })
+    const unsub = onAuthChange((s) => setAuthed(!!s))
+    return () => {
+      active = false
+      unsub()
+    }
+  }, [configured])
 
   if (!configured) {
     return <Setup onConnected={() => setConfigured(true)} />
+  }
+  if (authed === null) {
+    return <div className="app-gradient min-h-screen flex items-center justify-center text-white/50">Loading…</div>
+  }
+  if (!authed) {
+    return <Login />
   }
   return (
     <Workspace
@@ -27,6 +50,7 @@ export default function App() {
         clearConfig()
         setConfigured(false)
       }}
+      onSignOut={() => signOut()}
     />
   )
 }
@@ -34,11 +58,13 @@ export default function App() {
 function Workspace({
   page,
   setPage,
-  onReset
+  onReset,
+  onSignOut
 }: {
   page: Page
   setPage: (p: Page) => void
   onReset: () => void
+  onSignOut: () => void
 }) {
   const data = useData()
   const [refreshing, setRefreshing] = useState(false)
@@ -82,7 +108,13 @@ function Workspace({
 
   return (
     <div className="app-gradient min-h-screen flex text-white">
-      <Sidebar page={page} setPage={setPage} onReset={onReset} onCheckUpdates={checkUpdates} />
+      <Sidebar
+        page={page}
+        setPage={setPage}
+        onReset={onReset}
+        onSignOut={onSignOut}
+        onCheckUpdates={checkUpdates}
+      />
       <main className="flex-1 h-screen overflow-y-auto">
         <UpdateBanner
           update={update}
