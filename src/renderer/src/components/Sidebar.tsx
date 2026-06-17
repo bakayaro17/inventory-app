@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import type { Page } from '../lib/types'
 
-const NAV: { id: Page; label: string; icon: string }[] = [
-  { id: 'shipments', label: 'Shipment Received', icon: '📦' },
-  { id: 'outbound', label: 'Shipments', icon: '🚚' },
-  { id: 'items', label: 'Items', icon: '🧸' },
-  { id: 'inventory', label: 'Inventory', icon: '🗃️' },
-  { id: 'listing', label: 'Listing', icon: '🏷️' },
-  { id: 'overview', label: 'Overview', icon: '📊' }
+// Grouped so a divider sits between each cluster of related tabs.
+const NAV_GROUPS: { id: Page; label: string; icon: string }[][] = [
+  [
+    { id: 'overview', label: 'Dashboard', icon: '📊' },
+    { id: 'shipments', label: 'Shipment Received', icon: '📦' },
+    { id: 'inventory', label: 'Inventory', icon: '🗃️' },
+    { id: 'listing', label: 'Listing', icon: '🏷️' }
+  ],
+  [{ id: 'outbound', label: 'Shipments', icon: '🚚' }],
+  [{ id: 'items', label: 'Items', icon: '🧸' }]
 ]
 
 export default function Sidebar({
@@ -36,18 +39,25 @@ export default function Sidebar({
         <div className="text-white/40 text-xs mt-0.5">Personal stock manager</div>
       </div>
 
-      <nav className="flex-1 space-y-1">
-        {NAV.map((n) => (
-          <button
-            key={n.id}
-            onClick={() => setPage(n.id)}
-            className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
-              page === n.id ? 'bg-white text-ink' : 'text-white/70 hover:bg-white/10 hover:text-white'
-            }`}
-          >
-            <span className="text-base">{n.icon}</span>
-            {n.label}
-          </button>
+      <nav className="flex-1">
+        {NAV_GROUPS.map((group, gi) => (
+          <div key={gi}>
+            {gi > 0 && <div className="my-3 border-t border-white/10" />}
+            <div className="space-y-1">
+              {group.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => setPage(n.id)}
+                  className={`w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                    page === n.id ? 'bg-white text-ink' : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <span className="text-base">{n.icon}</span>
+                  {n.label}
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </nav>
 

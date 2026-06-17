@@ -63,6 +63,16 @@ export async function deleteListing(id: string): Promise<void> {
   if (error) throw error
 }
 
+/** Delete every listing. The neq filter matches all real rows (Supabase
+ * requires a WHERE clause on delete) — a zero UUID never exists. */
+export async function clearListings(): Promise<void> {
+  const { error } = await client()
+    .from('listings')
+    .delete()
+    .neq('id', '00000000-0000-0000-0000-000000000000')
+  if (error) throw error
+}
+
 // ---------- Item presets ----------
 
 export async function listItems(): Promise<ItemPreset[]> {

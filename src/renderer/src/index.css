@@ -37,6 +37,17 @@ body {
   }
 }
 
+/* iPhone-style passcode shake on a wrong password */
+@keyframes shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-8px); }
+  40%, 60% { transform: translateX(8px); }
+}
+.shake {
+  animation: shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
 /* Frosted-glass card */
 .glass {
   background: rgba(255, 255, 255, 0.06);

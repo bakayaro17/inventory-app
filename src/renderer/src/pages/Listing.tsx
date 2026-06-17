@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Card, Button, Input, Select, EmptyState, Pill } from '../components/ui'
 import PageHeader from '../components/PageHeader'
-import { addListing, deleteListing, computeInventory } from '../lib/db'
+import { addListing, deleteListing, clearListings, computeInventory } from '../lib/db'
 import type { DataState } from '../lib/useData'
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -20,6 +20,8 @@ export default function Listing({ data }: { data: DataState }) {
   const [date, setDate] = useState(today())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [confirmingClear, setConfirmingClear] = useState(false)
+  const [clearing, setClearing] = useState(false)
 
   const maxForItem = inventory.find((r) => r.item_name === item)?.available ?? 0
 
@@ -43,6 +45,17 @@ export default function Listing({ data }: { data: DataState }) {
   async function remove(id: string) {
     await deleteListing(id)
     await data.refresh()
+  }
+
+  async function clearAll() {
+    setClearing(true)
+    try {
+      await clearListings()
+      await data.refresh()
+      setConfirmingClear(false)
+    } finally {
+      setClearing(false)
+    }
   }
 
   return (
@@ -102,6 +115,34 @@ export default function Listing({ data }: { data: DataState }) {
         {data.listings.length === 0 ? (
           <EmptyState title="No listings yet" hint="List an item above to get started." />
         ) : (
+          <>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+            <span className="text-white/50 text-sm">
+              {data.listings.length} {data.listings.length === 1 ? 'listing' : 'listings'}
+            </span>
+            {confirmingClear ? (
+              <div className="flex items-center gap-3">
+                <span className="text-rose-200 text-sm">Delete all listings? This can't be undone.</span>
+                <Button variant="danger" onClick={clearAll} disabled={clearing}>
+                  {clearing ? 'Clearing…' : 'Yes, clear all'}
+                </Button>
+                <button
+                  onClick={() => setConfirmingClear(false)}
+                  disabled={clearing}
+                  className="text-white/50 hover:text-white text-sm"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmingClear(true)}
+                className="text-white/40 hover:text-rose-300 text-xs"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
           <table className="w-full text-sm">
             <thead>
               <tr className="text-white/50 text-left border-b border-white/10">
@@ -133,6 +174,7 @@ export default function Listing({ data }: { data: DataState }) {
               ))}
             </tbody>
           </table>
+          </>
         )}
       </Card>
     </div>
