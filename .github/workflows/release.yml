@@ -39,4 +39,10 @@ jobs:
           # Built-in token — electron-builder uses this to upload assets to the
           # release for the tag that triggered this run. No manual secret needed.
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Baked into the renderer at build time so installers auto-connect and
+          # show only the password screen. Safe to ship: RLS blocks every table
+          # behind a logged-in user (see supabase/schema.sql).
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_LOGIN_EMAIL: ${{ secrets.VITE_LOGIN_EMAIL }}
         run: ${{ matrix.build }} -- --publish always
