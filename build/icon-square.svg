@@ -1,0 +1,30 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"  stop-color="#0f1226"/>
+      <stop offset="35%" stop-color="#1a1f4a"/>
+      <stop offset="70%" stop-color="#4a2b6b"/>
+      <stop offset="100%" stop-color="#6b2b5a"/>
+    </linearGradient>
+    <radialGradient id="sheen" cx="28%" cy="22%" r="75%">
+      <stop offset="0%"  stop-color="#ffffff" stop-opacity="0.14"/>
+      <stop offset="55%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="16" stdDeviation="26" flood-color="#000000" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <!-- Full-bleed square (iOS/Android apply their own corner mask) -->
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#sheen)"/>
+
+  <g filter="url(#shadow)">
+    <path d="M512 252 L737 382 L512 512 L287 382 Z" fill="#ffffff" fill-opacity="0.96"/>
+    <path d="M287 382 L512 512 L512 772 L287 642 Z" fill="#ffffff" fill-opacity="0.58"/>
+    <path d="M737 382 L737 642 L512 772 L512 512 Z" fill="#ffffff" fill-opacity="0.40"/>
+    <path d="M287 382 L512 512 L737 382 M512 512 L512 772"
+          stroke="#1a1f4a" stroke-opacity="0.18" stroke-width="6"
+          fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

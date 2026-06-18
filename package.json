@@ -12,7 +12,9 @@
     "start": "electron-vite preview",
     "build:win": "electron-vite build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
-    "build:all": "electron-vite build && electron-builder --win --mac"
+    "build:all": "electron-vite build && electron-builder --win --mac",
+    "build:web": "vite build --config vite.web.config.ts",
+    "preview:web": "vite preview --config vite.web.config.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",

@@ -6,6 +6,7 @@ import { addOutbound, deleteOutbound, knownItems } from '../lib/db'
 import { searchCities } from '../data/cities'
 import { printShipments, buildShipmentsHtml } from '../lib/print'
 import PrintSettings from '../components/PrintSettings'
+import { isDesktop } from '../lib/platform'
 import type { DataState } from '../lib/useData'
 import type { ShipmentLine } from '../lib/types'
 
@@ -225,23 +226,27 @@ export default function ShipmentsOut({ data }: { data: DataState }) {
                 {printMsg}
               </span>
             )}
-            <button
-              onClick={() => setShowSettings(true)}
-              className="text-xs text-white/50 hover:text-white/80 px-2"
-              title="Printer setup"
-            >
-              ⚙ Setup
-            </button>
+            {isDesktop && (
+              <button
+                onClick={() => setShowSettings(true)}
+                className="text-xs text-white/50 hover:text-white/80 px-2"
+                title="Printer setup"
+              >
+                ⚙ Setup
+              </button>
+            )}
             <Button
               variant="ghost"
               onClick={() => printShipments(activeDate, dayShipments)}
               disabled={dayShipments.length === 0}
             >
-              Save PDF
+              {isDesktop ? 'Save PDF' : '🖨️ Print'}
             </Button>
-            <Button onClick={emailDay} disabled={dayShipments.length === 0 || sending}>
-              {sending ? 'Sending…' : '🖨️ Print'}
-            </Button>
+            {isDesktop && (
+              <Button onClick={emailDay} disabled={dayShipments.length === 0 || sending}>
+                {sending ? 'Sending…' : '🖨️ Print'}
+              </Button>
+            )}
           </div>
         </div>
         {dayShipments.length === 0 ? (

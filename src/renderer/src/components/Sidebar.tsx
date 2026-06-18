@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import type { Page } from '../lib/types'
+import { isDesktop } from '../lib/platform'
 
 // Grouped so a divider sits between each cluster of related tabs.
 const NAV_GROUPS: { id: Page; label: string; icon: string }[][] = [
@@ -62,10 +63,14 @@ export default function Sidebar({
       </nav>
 
       <div className="mt-6 space-y-2 px-1">
-        <button onClick={onCheckUpdates} className="text-xs text-white/50 hover:text-white/80">
-          Check for updates
-        </button>
-        <br />
+        {isDesktop && (
+          <>
+            <button onClick={onCheckUpdates} className="text-xs text-white/50 hover:text-white/80">
+              Check for updates
+            </button>
+            <br />
+          </>
+        )}
         <button onClick={onSignOut} className="text-xs text-white/50 hover:text-white/80">
           Sign out
         </button>
@@ -73,7 +78,7 @@ export default function Sidebar({
         <button onClick={onReset} className="text-xs text-white/40 hover:text-white/70">
           Disconnect database
         </button>
-        <div className="text-[10px] text-white/30 pt-2">v{version || '—'}</div>
+        {isDesktop && <div className="text-[10px] text-white/30 pt-2">v{version || '—'}</div>}
       </div>
     </aside>
   )

@@ -14,7 +14,9 @@ interface ImportMeta {
 
 declare global {
   interface Window {
-    api: Api
+    // Present only in the Electron shell (injected by the preload script);
+    // undefined in the browser / PWA. See lib/platform.ts.
+    api?: Api
   }
 }
 

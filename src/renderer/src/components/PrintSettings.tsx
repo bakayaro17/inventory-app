@@ -28,10 +28,15 @@ export default function PrintSettings({ onClose }: { onClose: () => void }) {
       setMessage('Enter your Gmail App Password to finish setup.')
       return
     }
+    if (!window.api) {
+      setStatus('error')
+      setMessage('Printer setup is only available in the desktop app.')
+      return
+    }
     setStatus('saving')
     setMessage('')
     try {
-      const res = await window.api!.savePrintSettings({
+      const res = await window.api.savePrintSettings({
         gmailUser: gmailUser.trim(),
         printerEmail: printerEmail.trim(),
         appPassword: appPassword.trim() || undefined
