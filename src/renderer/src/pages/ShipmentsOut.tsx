@@ -125,7 +125,7 @@ export default function ShipmentsOut({ data }: { data: DataState }) {
       {/* Add form */}
       <Card className="p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-[160px_1fr] gap-4">
-          <div>
+          <div className="min-w-0">
             <label className="block text-xs uppercase tracking-wide text-white/40 mb-1">Date</label>
             <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             <label className="block text-xs uppercase tracking-wide text-white/40 mb-1 mt-4">

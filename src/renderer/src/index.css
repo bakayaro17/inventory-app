@@ -72,3 +72,18 @@ input,
 select {
   color-scheme: dark;
 }
+
+/* iOS Safari gives date inputs a wide intrinsic min-width that overflows its
+   grid/flex track (overlapping the next field). Neutralize the native sizing so
+   width:100% (the Input component) is honored, and let inputs shrink. */
+input[type='date'] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+input[type='date']::-webkit-date-and-time-value {
+  text-align: left;
+}
+input,
+select {
+  min-width: 0;
+}

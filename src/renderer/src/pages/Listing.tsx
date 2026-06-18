@@ -183,7 +183,7 @@ export default function Listing({ data }: { data: DataState }) {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
+    <div className="min-w-0">
       <label className="block text-xs uppercase tracking-wide text-white/40 mb-1">{label}</label>
       {children}
     </div>
